@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kevin Docs</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      color: white;
+    }
+    .cover {
+      padding: 50px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    h1 {
+      font-size: 36px;
+      color: #ffeb3b;
+    }
+    #access-section {
+      display: none;
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      margin: 10px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="cover">
+    <h1>Kevin Docs</h1>
+    <p>All the documents of Kevin are stored here. To get access, send a request.</p>
+  </div>
+
+  <button onclick="showAccess()">Get Access</button>
+
+  <div id="access-section">
+    <img src="1000050054.png" alt="Scan and Pay" />
+    <p>Scan and pay 100 rupees to get access</p>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCZtRoanYqhEHapzyylSdsciYJc_iG1FyI",
+      authDomain: "kevin-docs.firebaseapp.com",
+      projectId: "kevin-docs",
+      storageBucket: "kevin-docs.firebasestorage.app",
+      messagingSenderId: "636511201809",
+      appId: "1:636511201809:web:5f6cd7fa35247149d6dfb0"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function showAccess() {
+      document.getElementById('access-section').style.display = 'block';
+
+      db.collection("accessRequests").add({
+        timestamp: new Date(),
+        message: "User clicked Get Access"
+      }).then(() => {
+        console.log("Access request logged.");
+      }).catch((error) => {
+        console.error("Error writing to database: ", error);
+      });
+    }
+  </script>
+</body>
+</html>
