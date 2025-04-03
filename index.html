@@ -76,10 +76,8 @@
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCZtRoanYqhEHapzyylSdsciYJc_iG1FyI",
       authDomain: "kevin-docs.firebaseapp.com",
@@ -91,36 +89,31 @@
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const db = firebase.firestore();
 
     document.getElementById('login-form').style.display = 'block';
 
-    // Login Function
     function login() {
       let email = document.getElementById('email').value;
       let password = document.getElementById('password').value;
-
       auth.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
+        .then(() => {
           document.getElementById('login-message').innerText = "Login Successful!";
           document.getElementById('login-form').style.display = 'none';
           document.getElementById('access-section').style.display = 'block';
         })
-        .catch((error) => {
+        .catch(error => {
           document.getElementById('login-message').innerText = "Error: " + error.message;
         });
     }
 
-    // Sign Up Function
     function register() {
       let email = document.getElementById('email').value;
       let password = document.getElementById('password').value;
-
       auth.createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
+        .then(() => {
           document.getElementById('login-message').innerText = "Account Created! Please login.";
         })
-        .catch((error) => {
+        .catch(error => {
           document.getElementById('login-message').innerText = "Error: " + error.message;
         });
     }
@@ -128,15 +121,6 @@
     function showAccess() {
       document.getElementById('qr-code').style.display = 'block';
       document.getElementById('payment-text').style.display = 'block';
-
-      db.collection("accessRequests").add({
-        timestamp: new Date(),
-        message: "User clicked Get Access"
-      }).then(() => {
-        console.log("Access request logged.");
-      }).catch((error) => {
-        console.error("Error writing to database: ", error);
-      });
     }
   </script>
 </body>
