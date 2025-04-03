@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Kevin Docs</title>
+  <title>Kevin Docs - Login</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -21,9 +21,12 @@
       font-size: 36px;
       color: #ffeb3b;
     }
-    #access-section {
-      display: none;
-      margin-top: 20px;
+    input {
+      padding: 10px;
+      margin: 10px;
+      width: 200px;
+      border-radius: 5px;
+      border: none;
     }
     button {
       padding: 10px 20px;
@@ -43,23 +46,36 @@
       height: auto;
       margin-top: 20px;
     }
+    #login-form, #access-section {
+      display: none;
+    }
   </style>
 </head>
 <body>
   <div class="cover">
     <h1>Kevin Docs</h1>
-    <p>All the documents of Kevin are stored here. To get access, send a request.</p>
+    <p>All the documents of Kevin are stored here. To get access, please log in.</p>
   </div>
 
-  <button onclick="showAccess()">Get Access</button>
+  <!-- Login Form -->
+  <div id="login-form">
+    <input type="email" id="email" placeholder="Enter Email" /><br>
+    <input type="password" id="password" placeholder="Enter Password" /><br>
+    <button onclick="login()">Login</button>
+    <button onclick="register()">Sign Up</button>
+    <p id="login-message"></p>
+  </div>
 
+  <!-- Get Access Section (Hidden Until Login) -->
   <div id="access-section">
-    <img src="1000050054.png" alt="Scan and Pay" />
-    <p>Scan and pay 100 rupees to get access</p>
+    <button onclick="showAccess()">Get Access</button>
+    <img id="qr-code" src="1000050054.png" alt="Scan and Pay" style="display: none;"/>
+    <p id="payment-text" style="display: none;">Scan and pay 100 rupees to get access</p>
   </div>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <script>
@@ -74,10 +90,44 @@
     };
 
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.firestore();
 
+    document.getElementById('login-form').style.display = 'block';
+
+    // Login Function
+    function login() {
+      let email = document.getElementById('email').value;
+      let password = document.getElementById('password').value;
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          document.getElementById('login-message').innerText = "Login Successful!";
+          document.getElementById('login-form').style.display = 'none';
+          document.getElementById('access-section').style.display = 'block';
+        })
+        .catch((error) => {
+          document.getElementById('login-message').innerText = "Error: " + error.message;
+        });
+    }
+
+    // Sign Up Function
+    function register() {
+      let email = document.getElementById('email').value;
+      let password = document.getElementById('password').value;
+
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          document.getElementById('login-message').innerText = "Account Created! Please login.";
+        })
+        .catch((error) => {
+          document.getElementById('login-message').innerText = "Error: " + error.message;
+        });
+    }
+
     function showAccess() {
-      document.getElementById('access-section').style.display = 'block';
+      document.getElementById('qr-code').style.display = 'block';
+      document.getElementById('payment-text').style.display = 'block';
 
       db.collection("accessRequests").add({
         timestamp: new Date(),
