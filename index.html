@@ -67,13 +67,7 @@
       <input type="email" id="signup-email" placeholder="Email" class="form-control mb-2" />
       <input type="password" id="signup-password" placeholder="Password" class="form-control mb-2" />
       <input type="password" id="signup-confirm" placeholder="Confirm Password" class="form-control mb-3" />
-      <button class="btn btn-success w-100" onclick="initiateSignup()">Send OTP</button>
-    </div>
-
-    <!-- OTP Section -->
-    <div id="otp-section" class="hidden">
-      <input type="text" id="otp" placeholder="Enter OTP" class="form-control mb-3" />
-      <button class="btn btn-warning w-100" onclick="verifySignupOTP()">Verify OTP</button>
+      <button class="btn btn-success w-100" onclick="initiateSignup()">Sign Up</button>
     </div>
 
     <!-- Post Signup Message -->
@@ -85,20 +79,18 @@
     <!-- Main content after login -->
     <div id="main-content" class="hidden">
       <p class="mt-4">All the documents of Kevin are stored here. To get access, send a request.</p>
-      <button class="btn btn-outline-success">Get Access</button>
+      <button class="btn btn-outline-success" onclick="getAccess()">Get Access</button>
     </div>
   </div>
 
   <script>
     emailjs.init("asApBLVCT-CCvMpnV");
 
-    let generatedOTP = "";
     let pendingUser = {};
 
     function toggleForms(formType) {
       document.getElementById('login-form').classList.add('hidden');
       document.getElementById('signup-form').classList.add('hidden');
-      document.getElementById('otp-section').classList.add('hidden');
       document.getElementById('post-signup-message').classList.add('hidden');
 
       if (formType === 'login') {
@@ -126,39 +118,50 @@
         return;
       }
 
-      // Generate OTP and send
-      generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-      pendingUser = { username, email, password };
+      // Simulate sending OTP (removed OTP section)
+      alert("Signup successful! Please log in to proceed.");
 
-      emailjs.send("service_y2gxf7e", "template_kz0g69a", {
-        to_email: email,
-        otp: generatedOTP
-      }).then(() => {
-        alert("OTP sent to your email");
-        document.getElementById('signup-form').classList.add('hidden');
-        document.getElementById('otp-section').classList.remove('hidden');
-      }).catch((err) => {
-        alert("Failed to send OTP");
-        console.error("OTP send error:", err);
-      });
+      // Store user data for later login simulation
+      pendingUser = { username, email, password };
+      document.getElementById('signup-form').classList.add('hidden');
+      document.getElementById('post-signup-message').classList.remove('hidden');
     }
 
-    function verifySignupOTP() {
-      const enteredOTP = document.getElementById('otp').value;
-      if (enteredOTP === generatedOTP) {
-        // OTP is correct - simulate Firebase account creation
-        localStorage.setItem("userEmail", pendingUser.email);
-        localStorage.setItem("username", pendingUser.username);
-        generatedOTP = "";
+    function handleLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
 
-        document.getElementById('otp-section').classList.add('hidden');
-        document.getElementById('post-signup-message').classList.remove('hidden');
+      if (!email || !password) {
+        document.getElementById('status').innerText = "Email and password are required.";
+        return;
+      }
+
+      if (pendingUser.email === email && pendingUser.password === password) {
+        document.getElementById('username-btn').innerText = pendingUser.username;
+        document.getElementById('user-menu').classList.remove('hidden');
+        document.getElementById('login-form').classList.add('hidden');
+        document.getElementById('form-title').classList.add('hidden');
+        document.getElementById('main-content').classList.remove('hidden');
+        document.getElementById('welcome-message').innerText = `Welcome, ${pendingUser.username}`;
+        document.getElementById('welcome-message').classList.remove('hidden');
       } else {
-        alert("Invalid OTP");
+        document.getElementById('status').innerText = "Invalid login credentials.";
       }
     }
-  </script>
 
-  <script type="module" src="main.js"></script>
+    function getAccess() {
+      // Simulate getting access to documents
+      alert("Access granted! You can now view documents.");
+    }
+
+    function toggleDropdown() {
+      const dropdown = document.getElementById('dropdown');
+      dropdown.style.display = dropdown.style.display === 'none' || dropdown.style.display === '' ? 'block' : 'none';
+    }
+
+    function logout() {
+      location.reload();
+    }
+  </script>
 </body>
 </html>
