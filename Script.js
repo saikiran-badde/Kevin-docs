@@ -1,89 +1,89 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+<script>
+  window.onload = function () {
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCZtRoanYqhEHapzyylSdsciYJc_iG1FyI",
+      authDomain: "kevin-docs.firebaseapp.com",
+      projectId: "kevin-docs",
+      storageBucket: "kevin-docs.appspot.com",
+      messagingSenderId: "636511201809",
+      appId: "1:636511201809:web:5f6cd7fa35247149d6dfb0"
+    };
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCZtRoanYqhEHapzyylSdsciYJc_iG1FyI",
-  authDomain: "kevin-docs.firebaseapp.com",
-  projectId: "kevin-docs",
-  storageBucket: "kevin-docs.appspot.com",
-  messagingSenderId: "636511201809",
-  appId: "1:636511201809:web:5f6cd7fa35247149d6dfb0"
-};
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    let generatedOtp = "";
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    window.toggleForms = function(view) {
+      document.getElementById("login-form").classList.add("hidden");
+      document.getElementById("signup-form").classList.add("hidden");
+      document.getElementById("otp-section").classList.add("hidden");
+      document.getElementById("post-signup-message").classList.add("hidden");
+      document.getElementById("status").innerText = "";
+      document.getElementById("form-title").innerText = view === "signup" ? "Sign Up" : "Login";
 
-// Initialize EmailJS
-emailjs.init("asApBLVCT-CCvMpnV");
+      if (view === "signup") {
+        document.getElementById("signup-form").classList.remove("hidden");
+      } else {
+        document.getElementById("login-form").classList.remove("hidden");
+      }
+    };
 
-function generateOTP() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
+    window.handleLogin = function() {
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+      document.getElementById("status").innerText = "Logging in...";
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          document.getElementById("status").innerText = "Login successful!";
+        })
+        .catch((error) => {
+          document.getElementById("status").innerText = error.message;
+        });
+    };
 
-window.sendOTP = async function () {
-  const email = document.getElementById("email").value;
-  const otp = generateOTP();
-  const now = new Date();
-  const expireAt = new Date(now.getTime() + 5 * 60000);
+    window.initiateSignup = function() {
+      const email = document.getElementById("signup-email").value;
+      const password = document.getElementById("signup-password").value;
+      const confirmPassword = document.getElementById("signup-confirm").value;
 
-  try {
-    await setDoc(doc(db, "otps", email), {
-      otp,
-      expireAt: expireAt.toISOString()
-    });
-    console.log("OTP saved to Firestore for", email);
-  } catch (error) {
-    console.error("Error saving OTP:", error);
-    document.getElementById("status").innerText = "Error saving OTP. Check console.";
-    return;
-  }
+      if (password !== confirmPassword) {
+        document.getElementById("status").innerText = "Passwords do not match.";
+        return;
+      }
 
-  emailjs.send("service_y2gxf7e", "template_kz0g69a", {
-    to_email: email,
-    otp: otp
-  })
-  .then(() => {
-    console.log("OTP Email sent successfully to:", email);
-    document.getElementById("status").innerText = "OTP has been sent to your email.";
-    document.getElementById("otp-section").style.display = "block";
-  })
-  .catch((err) => {
-    console.error("EmailJS error:", err);
-    document.getElementById("status").innerText = "Failed to send OTP. Check console.";
-  });
-};
+      generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-window.verifyOTP = async function () {
-  const email = document.getElementById("email").value;
-  const enteredOtp = document.getElementById("otp").value;
+      emailjs.send("service_y2gxf7e", "template_kz0g69a", {
+        to_email: email,
+        otp: generatedOtp
+      }).then(() => {
+        document.getElementById("signup-form").classList.add("hidden");
+        document.getElementById("otp-section").classList.remove("hidden");
+        document.getElementById("status").innerText = "OTP has been sent to your email.";
+      }).catch((error) => {
+        console.error("OTP send error:", error);
+        document.getElementById("status").innerText = "Failed to send OTP.";
+      });
+    };
 
-  try {
-    const docRef = doc(db, "otps", email);
-    const docSnap = await getDoc(docRef);
+    window.verifySignupOTP = function() {
+      const enteredOtp = document.getElementById("otp").value;
+      const email = document.getElementById("signup-email").value;
+      const password = document.getElementById("signup-password").value;
 
-    if (!docSnap.exists()) {
-      document.getElementById("status").innerText = "No OTP found. Please try again.";
-      return;
-    }
-
-    const data = docSnap.data();
-    const now = new Date();
-    const expireAt = new Date(data.expireAt);
-
-    if (now > expireAt) {
-      document.getElementById("status").innerText = "OTP expired. Please request a new one.";
-      await deleteDoc(docRef);
-      return;
-    }
-
-    if (enteredOtp === data.otp) {
-      document.getElementById("status").innerText = "OTP verified! Access granted.";
-      await deleteDoc(docRef);
-    } else {
-      document.getElementById("status").innerText = "Incorrect OTP.";
-    }
-  } catch (error) {
-    console.error("Error verifying OTP:", error);
-    document.getElementById("status").innerText = "Error verifying OTP. Check console.";
-  }
-};
+      if (enteredOtp === generatedOtp) {
+        auth.createUserWithEmailAndPassword(email, password)
+          .then(() => {
+            document.getElementById("otp-section").classList.add("hidden");
+            document.getElementById("post-signup-message").classList.remove("hidden");
+          })
+          .catch((error) => {
+            document.getElementById("status").innerText = error.message;
+          });
+      } else {
+        document.getElementById("status").innerText = "Invalid OTP.";
+      }
+    };
+  };
+</script>
