@@ -1,8 +1,6 @@
-// script.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
-// Firebase config (replace with yours if needed)
 const firebaseConfig = {
   apiKey: "AIzaSyCZtRoanYqhEHapzyylSdsciYJc_iG1FyI",
   authDomain: "kevin-docs.firebaseapp.com",
@@ -15,8 +13,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Initialize EmailJS
-emailjs.init("asApBLVCT-CCvMpnV"); // Replace with your EmailJS Public Key
+emailjs.init("asApBLVCT-CCvMpnV"); // Replace with your EmailJS public key
 
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -26,26 +23,35 @@ window.sendOTP = async function () {
   const email = document.getElementById("email").value;
   const otp = generateOTP();
 
-  // Store OTP in Firestore with 5-minute expiry
   const now = new Date();
-  const expireAt = new Date(now.getTime() + 5 * 60000); // 5 minutes
+  const expireAt = new Date(now.getTime() + 5 * 60000);
 
-  await setDoc(doc(db, "otps", email), {
-    otp,
-    expireAt: expireAt.toISOString()
-  });
+  try {
+    await setDoc(doc(db, "otps", email), {
+      otp,
+      expireAt: expireAt.toISOString()
+    });
+    console.log("OTP saved to Firestore for", email);
+  } catch (error) {
+    console.error("Error saving OTP:", error);
+    document.getElementById("status").innerText = "Error saving OTP. Check console.";
+    return;
+  }
 
-  // Send OTP via EmailJS
+  console.log("Sending email to:", email, "with OTP:", otp);
+
   emailjs.send("service_y2gxf7e", "template_kz0g69a", {
     to_email: email,
-    otp
+    otp: otp
   })
   .then(() => {
     document.getElementById("status").innerText = "OTP sent to your email";
     document.getElementById("otp-section").style.display = "block";
+    console.log("Email sent successfully");
   })
-  .catch(error => {
-    document.getElementById("status").innerText = "Failed to send OTP: " + error;
+  .catch((err) => {
+    console.error("EmailJS error:", err);
+    document.getElementById("status").innerText = "Failed to send OTP. Check console.";
   });
 };
 
@@ -53,28 +59,33 @@ window.verifyOTP = async function () {
   const email = document.getElementById("email").value;
   const enteredOtp = document.getElementById("otp").value;
 
-  const docRef = doc(db, "otps", email);
-  const docSnap = await getDoc(docRef);
+  try {
+    const docRef = doc(db, "otps", email);
+    const docSnap = await getDoc(docRef);
 
-  if (!docSnap.exists()) {
-    document.getElementById("status").innerText = "No OTP found. Please try again.";
-    return;
-  }
+    if (!docSnap.exists()) {
+      document.getElementById("status").innerText = "No OTP found. Please try again.";
+      return;
+    }
 
-  const data = docSnap.data();
-  const now = new Date();
-  const expireAt = new Date(data.expireAt);
+    const data = docSnap.data();
+    const now = new Date();
+    const expireAt = new Date(data.expireAt);
 
-  if (now > expireAt) {
-    document.getElementById("status").innerText = "OTP expired. Please request a new one.";
-    await deleteDoc(docRef);
-    return;
-  }
+    if (now > expireAt) {
+      document.getElementById("status").innerText = "OTP expired. Please request a new one.";
+      await deleteDoc(docRef);
+      return;
+    }
 
-  if (enteredOtp === data.otp) {
-    document.getElementById("status").innerText = "OTP verified! Access granted.";
-    await deleteDoc(docRef);
-  } else {
-    document.getElementById("status").innerText = "Incorrect OTP.";
+    if (enteredOtp === data.otp) {
+      document.getElementById("status").innerText = "OTP verified! Access granted.";
+      await deleteDoc(docRef);
+    } else {
+      document.getElementById("status").innerText = "Incorrect OTP.";
+    }
+  } catch (error) {
+    console.error("Error verifying OTP:", error);
+    document.getElementById("status").innerText = "Error verifying OTP. Check console.";
   }
 };
