@@ -41,4 +41,177 @@
 <body>
 
   <div id="user-menu" class="hidden">
-    <button class="btn btn-outline-dark
+    <button class="btn btn-outline-dark dropdown-toggle" onclick="toggleDropdown()" id="username-btn"></button>
+    <div id="dropdown">
+      <div id="dropdown-username" class="mb-2"></div>
+      <button class="btn btn-sm btn-danger w-100" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="container text-center">
+    <h2 id="form-title">Login</h2>
+    <div id="status" class="text-danger mb-3"></div>
+
+    <!-- Welcome message -->
+    <div id="welcome-message" class="mb-4 hidden"></div>
+
+    <!-- Login Form -->
+    <div id="login-form">
+      <input type="email" id="login-email" placeholder="Email" class="form-control mb-2"/>
+      <input type="password" id="login-password" placeholder="Password" class="form-control mb-3"/>
+      <button class="btn btn-primary w-100 mb-2" onclick="handleLogin()">Login</button>
+      <button class="btn btn-outline-secondary w-100" onclick="toggleForms('signup')">Sign Up</button>
+    </div>
+
+    <!-- Signup Form -->
+    <div id="signup-form" class="hidden">
+      <input type="email" id="signup-email" placeholder="Email" class="form-control mb-2"/>
+      <input type="password" id="signup-password" placeholder="Password" class="form-control mb-2"/>
+      <input type="password" id="signup-confirm" placeholder="Confirm Password" class="form-control mb-3"/>
+      <button class="btn btn-success w-100" onclick="initiateSignup()">Send OTP</button>
+    </div>
+
+    <!-- OTP Section -->
+    <div id="otp-section" class="hidden">
+      <input type="text" id="otp" placeholder="Enter OTP" class="form-control mb-3"/>
+      <button class="btn btn-warning w-100" onclick="verifySignupOTP()">Verify OTP</button>
+    </div>
+
+    <!-- Post Signup Message -->
+    <div id="post-signup-message" class="hidden">
+      <p class="text-success">✅ Account created successfully. Please login again to access.</p>
+      <button class="btn btn-primary w-100" onclick="toggleForms('login')">Back to Login</button>
+    </div>
+
+    <!-- Main content after login -->
+    <div id="main-content" class="hidden">
+      <p class="mt-4">All the documents of Kevin are stored here. To get access, send a request.</p>
+      <button class="btn btn-outline-success">Get Access</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module">
+    import emailjs from 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js';
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      signOut
+    } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js';
+
+    emailjs.init("asApBLVCT-CCvMpnV");
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCZtRoanYqhEHapzyylSdsciYJc_iG1FyI",
+      authDomain: "kevin-docs.firebaseapp.com",
+      projectId: "kevin-docs",
+      storageBucket: "kevin-docs.appspot.com",
+      messagingSenderId: "636511201809",
+      appId: "1:636511201809:web:5f6cd7fa35247149d6dfb0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    let generatedOtp = "";
+    let currentEmail = "";
+
+    window.toggleForms = function(view) {
+      document.getElementById("login-form").classList.add("hidden");
+      document.getElementById("signup-form").classList.add("hidden");
+      document.getElementById("otp-section").classList.add("hidden");
+      document.getElementById("post-signup-message").classList.add("hidden");
+      document.getElementById("main-content").classList.add("hidden");
+      document.getElementById("welcome-message").classList.add("hidden");
+      document.getElementById("form-title").innerText = view === "signup" ? "Sign Up" : "Login";
+      document.getElementById("status").innerText = "";
+
+      if (view === "signup") {
+        document.getElementById("signup-form").classList.remove("hidden");
+      } else {
+        document.getElementById("login-form").classList.remove("hidden");
+      }
+    };
+
+    window.handleLogin = function() {
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+      document.getElementById("status").innerText = "Logging in...";
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCred) => {
+          const username = email.split('@')[0];
+          document.getElementById("status").innerText = "";
+          document.getElementById("login-form").classList.add("hidden");
+          document.getElementById("form-title").innerText = "Kevin Docs";
+          document.getElementById("welcome-message").classList.remove("hidden");
+          document.getElementById("welcome-message").innerText = `Welcome, ${username}!`;
+          document.getElementById("main-content").classList.remove("hidden");
+          document.getElementById("user-menu").classList.remove("hidden");
+          document.getElementById("username-btn").innerText = username;
+          document.getElementById("dropdown-username").innerText = `Signed in as: ${username}`;
+        })
+        .catch((error) => {
+          document.getElementById("status").innerText = error.message;
+        });
+    };
+
+    window.initiateSignup = function() {
+      const email = document.getElementById("signup-email").value;
+      const password = document.getElementById("signup-password").value;
+      const confirm = document.getElementById("signup-confirm").value;
+
+      if (password !== confirm) {
+        document.getElementById("status").innerText = "Passwords do not match.";
+        return;
+      }
+
+      generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      currentEmail = email;
+
+      emailjs.send("service_y2gxf7e", "template_kz0g69a", {
+        to_email: email,
+        otp: generatedOtp
+      }).then(() => {
+        document.getElementById("signup-form").classList.add("hidden");
+        document.getElementById("otp-section").classList.remove("hidden");
+        document.getElementById("status").innerText = "OTP has been sent to your email.";
+      }).catch(() => {
+        document.getElementById("status").innerText = "Failed to send OTP.";
+      });
+    };
+
+    window.verifySignupOTP = function() {
+      const entered = document.getElementById("otp").value;
+      const password = document.getElementById("signup-password").value;
+
+      if (entered === generatedOtp) {
+        createUserWithEmailAndPassword(auth, currentEmail, password)
+          .then(() => {
+            document.getElementById("otp-section").classList.add("hidden");
+            document.getElementById("post-signup-message").classList.remove("hidden");
+            document.getElementById("status").innerText = "";
+          })
+          .catch((error) => {
+            document.getElementById("status").innerText = error.message;
+          });
+      } else {
+        document.getElementById("status").innerText = "Invalid OTP.";
+      }
+    };
+
+    window.toggleDropdown = function () {
+      const dropdown = document.getElementById("dropdown");
+      dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+    };
+
+    window.logout = function () {
+      signOut(auth).then(() => {
+        window.location.reload();
+      });
+    };
+  </script>
+</body>
+</html>
