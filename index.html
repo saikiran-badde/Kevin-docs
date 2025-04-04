@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kevin Docs OTP Login</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kevin Docs - Login</title>
   <style>
     body {
       margin: 0;
@@ -11,43 +11,73 @@
       font-family: Arial, sans-serif;
       background: linear-gradient(135deg, #89f7fe, #66a6ff);
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
     }
-    h1 {
-      color: #fff;
-    }
-    .box {
-      background: #fff;
+    .container {
+      background: white;
       padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
       text-align: center;
+      width: 300px;
+    }
+    h2 {
+      margin-bottom: 20px;
     }
     input, button {
-      margin: 10px;
+      width: 100%;
       padding: 10px;
-      width: 80%;
+      margin: 10px 0;
+    }
+    #otp-section, #signup-form, #post-signup-message {
+      display: none;
+    }
+    .message {
+      color: green;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>Kevin Docs - OTP Login</h1>
-  <div class="box">
-    <input type="email" id="email" placeholder="Enter your email" required />
-    <button onclick="sendOTP()">Send OTP</button>
-    <div id="otp-section" style="display:none;">
-      <input type="text" id="otp" placeholder="Enter OTP" required />
-      <button onclick="verifyOTP()">Verify OTP</button>
+  <div class="container">
+    <h2 id="form-title">Login</h2>
+
+    <div id="login-form">
+      <input type="email" id="login-email" placeholder="Email" required>
+      <input type="password" id="login-password" placeholder="Password" required>
+      <button onclick="handleLogin()">Login</button>
+      <button onclick="toggleForms('signup')">Sign Up</button>
     </div>
+
+    <div id="signup-form">
+      <input type="text" id="signup-username" placeholder="Username" required>
+      <input type="email" id="signup-email" placeholder="Email" required>
+      <input type="password" id="signup-password" placeholder="Password" required>
+      <input type="password" id="signup-confirm" placeholder="Confirm Password" required>
+      <button onclick="initiateSignup()">Sign Up</button>
+      <button onclick="toggleForms('login')">Back to Login</button>
+    </div>
+
+    <div id="otp-section">
+      <input type="text" id="otp" placeholder="Enter OTP">
+      <button onclick="verifySignupOTP()">Verify OTP</button>
+    </div>
+
+    <div id="post-signup-message">
+      <p class="message">Account created successfully. Login again to access.</p>
+      <button onclick="toggleForms('login')">Back to Login</button>
+    </div>
+
     <p id="status"></p>
   </div>
+
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCZtRoanYqhEHapzyylSdsciYJc_iG1FyI",
@@ -60,73 +90,82 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
+    const auth = getAuth(app);
     emailjs.init("asApBLVCT-CCvMpnV");
 
-    function generateOTP() {
-      return Math.floor(100000 + Math.random() * 900000).toString();
+    let signupData = {};
+
+    function toggleForms(view) {
+      document.getElementById("login-form").style.display = view === "login" ? "block" : "none";
+      document.getElementById("signup-form").style.display = view === "signup" ? "block" : "none";
+      document.getElementById("otp-section").style.display = "none";
+      document.getElementById("post-signup-message").style.display = "none";
+      document.getElementById("form-title").innerText = view === "signup" ? "Sign Up" : "Login";
+      document.getElementById("status").innerText = "";
     }
 
-    window.sendOTP = async function () {
-      const email = document.getElementById("email").value;
-      const otp = generateOTP();
-      const now = new Date();
-      const expireAt = new Date(now.getTime() + 5 * 60000);
+    window.handleLogin = function () {
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
 
-      try {
-        await setDoc(doc(db, "otps", email), {
-          otp,
-          expireAt: expireAt.toISOString()
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          document.getElementById("status").innerText = `Welcome, ${email}`;
+        })
+        .catch(() => {
+          document.getElementById("status").innerText = "Invalid credentials or user not found.";
         });
-
-        await emailjs.send("service_y2gxf7e", "template_kz0g69a", {
-          to_email: email,
-          otp: otp
-        });
-
-        document.getElementById("status").innerText = "OTP has been sent to your email.";
-        document.getElementById("otp-section").style.display = "block";
-      } catch (error) {
-        console.error("Error sending OTP:", error);
-        document.getElementById("status").innerText = "Failed to send OTP. Check console.";
-      }
     };
 
-    window.verifyOTP = async function () {
-      const email = document.getElementById("email").value;
+    window.initiateSignup = async function () {
+      const username = document.getElementById("signup-username").value;
+      const email = document.getElementById("signup-email").value;
+      const password = document.getElementById("signup-password").value;
+      const confirm = document.getElementById("signup-confirm").value;
+
+      if (password !== confirm) {
+        document.getElementById("status").innerText = "Passwords do not match.";
+        return;
+      }
+
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      signupData = { username, email, password, otp };
+
+      await setDoc(doc(db, "signup_otps", email), {
+        otp,
+        createdAt: new Date().toISOString()
+      });
+
+      await emailjs.send("service_y2gxf7e", "template_kz0g69a", {
+        to_email: email,
+        otp: otp
+      });
+
+      document.getElementById("signup-form").style.display = "none";
+      document.getElementById("otp-section").style.display = "block";
+      document.getElementById("status").innerText = "OTP has been sent to your email.";
+    };
+
+    window.verifySignupOTP = async function () {
+      const email = signupData.email;
       const enteredOtp = document.getElementById("otp").value;
 
-      try {
-        const docRef = doc(db, "otps", email);
-        const docSnap = await getDoc(docRef);
+      const docRef = doc(db, "signup_otps", email);
+      const docSnap = await getDoc(docRef);
 
-        if (!docSnap.exists()) {
-          document.getElementById("status").innerText = "No OTP found. Please try again.";
-          return;
-        }
-
-        const data = docSnap.data();
-        const now = new Date();
-        const expireAt = new Date(data.expireAt);
-
-        if (now > expireAt) {
-          document.getElementById("status").innerText = "OTP expired. Please request a new one.";
-          await deleteDoc(docRef);
-          return;
-        }
-
-        if (enteredOtp === data.otp) {
-          document.getElementById("status").innerText = "OTP verified! Access granted.";
-          await deleteDoc(docRef);
-        } else {
-          document.getElementById("status").innerText = "Incorrect OTP.";
-        }
-      } catch (error) {
-        console.error("Error verifying OTP:", error);
-        document.getElementById("status").innerText = "Error verifying OTP. Check console.";
+      if (!docSnap.exists() || docSnap.data().otp !== enteredOtp) {
+        document.getElementById("status").innerText = "Incorrect or expired OTP.";
+        return;
       }
+
+      await createUserWithEmailAndPassword(auth, email, signupData.password);
+      await setDoc(doc(db, "users", email), { username: signupData.username });
+      await deleteDoc(docRef);
+
+      document.getElementById("otp-section").style.display = "none";
+      document.getElementById("post-signup-message").style.display = "block";
+      document.getElementById("status").innerText = "";
     };
   </script>
 </body>
 </html>
-
