@@ -13,7 +13,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Initialize EmailJS with your public key
+// Initialize EmailJS
 emailjs.init("asApBLVCT-CCvMpnV");
 
 function generateOTP() {
@@ -23,7 +23,6 @@ function generateOTP() {
 window.sendOTP = async function () {
   const email = document.getElementById("email").value;
   const otp = generateOTP();
-
   const now = new Date();
   const expireAt = new Date(now.getTime() + 5 * 60000);
 
@@ -44,9 +43,9 @@ window.sendOTP = async function () {
     otp: otp
   })
   .then(() => {
+    console.log("OTP Email sent successfully to:", email);
     document.getElementById("status").innerText = "OTP has been sent to your email.";
     document.getElementById("otp-section").style.display = "block";
-    console.log("Email sent successfully");
   })
   .catch((err) => {
     console.error("EmailJS error:", err);
