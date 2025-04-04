@@ -13,7 +13,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-emailjs.init("asApBLVCT-CCvMpnV"); // Replace with your EmailJS public key
+// Initialize EmailJS with your public key
+emailjs.init("asApBLVCT-CCvMpnV");
 
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -38,14 +39,12 @@ window.sendOTP = async function () {
     return;
   }
 
-  console.log("Sending email to:", email, "with OTP:", otp);
-
   emailjs.send("service_y2gxf7e", "template_kz0g69a", {
     to_email: email,
     otp: otp
   })
   .then(() => {
-    document.getElementById("status").innerText = "OTP sent to your email";
+    document.getElementById("status").innerText = "OTP has been sent to your email.";
     document.getElementById("otp-section").style.display = "block";
     console.log("Email sent successfully");
   })
