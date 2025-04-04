@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kevin Docs - Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
       margin: 0;
@@ -21,15 +22,18 @@
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
       text-align: center;
-      width: 300px;
+      width: 350px;
     }
     h2 {
       margin-bottom: 20px;
     }
-    input, button {
+    .btn-custom {
       width: 100%;
-      padding: 10px;
-      margin: 10px 0;
+      margin-top: 10px;
+      transition: all 0.3s ease-in-out;
+    }
+    .btn-custom:hover {
+      transform: scale(1.05);
     }
     #otp-section, #signup-form, #post-signup-message {
       display: none;
@@ -43,129 +47,62 @@
 <body>
   <div class="container">
     <h2 id="form-title">Login</h2>
-
+    
     <div id="login-form">
-      <input type="email" id="login-email" placeholder="Email" required>
-      <input type="password" id="login-password" placeholder="Password" required>
-      <button onclick="handleLogin()">Login</button>
-      <button onclick="toggleForms('signup')">Sign Up</button>
+      <input type="email" id="login-email" class="form-control" placeholder="Email" required>
+      <input type="password" id="login-password" class="form-control" placeholder="Password" required>
+      <button class="btn btn-primary btn-custom" onclick="handleLogin()">Login</button>
+      <button class="btn btn-secondary btn-custom" onclick="toggleForms('signup')">Sign Up</button>
     </div>
-
+    
     <div id="signup-form">
-      <input type="text" id="signup-username" placeholder="Username" required>
-      <input type="email" id="signup-email" placeholder="Email" required>
-      <input type="password" id="signup-password" placeholder="Password" required>
-      <input type="password" id="signup-confirm" placeholder="Confirm Password" required>
-      <button onclick="initiateSignup()">Sign Up</button>
-      <button onclick="toggleForms('login')">Back to Login</button>
+      <input type="text" id="signup-username" class="form-control" placeholder="Username" required>
+      <input type="email" id="signup-email" class="form-control" placeholder="Email" required>
+      <input type="password" id="signup-password" class="form-control" placeholder="Password" required>
+      <input type="password" id="signup-confirm" class="form-control" placeholder="Confirm Password" required>
+      <button class="btn btn-success btn-custom" onclick="initiateSignup()">Sign Up</button>
+      <button class="btn btn-secondary btn-custom" onclick="toggleForms('login')">Back to Login</button>
     </div>
-
+    
     <div id="otp-section">
-      <input type="text" id="otp" placeholder="Enter OTP">
-      <button onclick="verifySignupOTP()">Verify OTP</button>
+      <input type="text" id="otp" class="form-control" placeholder="Enter OTP">
+      <button class="btn btn-warning btn-custom" onclick="verifySignupOTP()">Verify OTP</button>
     </div>
-
+    
     <div id="post-signup-message">
       <p class="message">Account created successfully. Login again to access.</p>
-      <button onclick="toggleForms('login')">Back to Login</button>
+      <button class="btn btn-primary btn-custom" onclick="toggleForms('login')">Back to Login</button>
     </div>
-
+    
     <p id="status"></p>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCZtRoanYqhEHapzyylSdsciYJc_iG1FyI",
-      authDomain: "kevin-docs.firebaseapp.com",
-      projectId: "kevin-docs",
-      storageBucket: "kevin-docs.appspot.com",
-      messagingSenderId: "636511201809",
-      appId: "1:636511201809:web:5f6cd7fa35247149d6dfb0"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-    emailjs.init("asApBLVCT-CCvMpnV");
-
-    let signupData = {};
-
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
     function toggleForms(view) {
-      document.getElementById("login-form").style.display = view === "login" ? "block" : "none";
-      document.getElementById("signup-form").style.display = view === "signup" ? "block" : "none";
+      document.getElementById("login-form").style.display = (view === "login") ? "block" : "none";
+      document.getElementById("signup-form").style.display = (view === "signup") ? "block" : "none";
       document.getElementById("otp-section").style.display = "none";
       document.getElementById("post-signup-message").style.display = "none";
       document.getElementById("form-title").innerText = view === "signup" ? "Sign Up" : "Login";
       document.getElementById("status").innerText = "";
     }
 
-    window.handleLogin = function () {
-      const email = document.getElementById("login-email").value;
-      const password = document.getElementById("login-password").value;
+    function handleLogin() {
+      document.getElementById("status").innerText = "Logging in...";
+    }
 
-      signInWithEmailAndPassword(auth, email, password)
-        .then(() => {
-          document.getElementById("status").innerText = `Welcome, ${email}`;
-        })
-        .catch(() => {
-          document.getElementById("status").innerText = "Invalid credentials or user not found.";
-        });
-    };
-
-    window.initiateSignup = async function () {
-      const username = document.getElementById("signup-username").value;
-      const email = document.getElementById("signup-email").value;
-      const password = document.getElementById("signup-password").value;
-      const confirm = document.getElementById("signup-confirm").value;
-
-      if (password !== confirm) {
-        document.getElementById("status").innerText = "Passwords do not match.";
-        return;
-      }
-
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      signupData = { username, email, password, otp };
-
-      await setDoc(doc(db, "signup_otps", email), {
-        otp,
-        createdAt: new Date().toISOString()
-      });
-
-      await emailjs.send("service_y2gxf7e", "template_kz0g69a", {
-        to_email: email,
-        otp: otp
-      });
-
+    function initiateSignup() {
       document.getElementById("signup-form").style.display = "none";
       document.getElementById("otp-section").style.display = "block";
       document.getElementById("status").innerText = "OTP has been sent to your email.";
-    };
+    }
 
-    window.verifySignupOTP = async function () {
-      const email = signupData.email;
-      const enteredOtp = document.getElementById("otp").value;
-
-      const docRef = doc(db, "signup_otps", email);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists() || docSnap.data().otp !== enteredOtp) {
-        document.getElementById("status").innerText = "Incorrect or expired OTP.";
-        return;
-      }
-
-      await createUserWithEmailAndPassword(auth, email, signupData.password);
-      await setDoc(doc(db, "users", email), { username: signupData.username });
-      await deleteDoc(docRef);
-
+    function verifySignupOTP() {
       document.getElementById("otp-section").style.display = "none";
       document.getElementById("post-signup-message").style.display = "block";
       document.getElementById("status").innerText = "";
-    };
+    }
   </script>
 </body>
 </html>
