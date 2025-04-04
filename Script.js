@@ -13,8 +13,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Initialize EmailJS with your public key
-emailjs.init("asApBLVCT-CCvMpnV");
+emailjs.init("YOUR_PUBLIC_KEY"); // Replace with your EmailJS public key
 
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -39,7 +38,7 @@ window.sendOTP = async function () {
     return;
   }
 
-  emailjs.send("service_y2gxf7e", "template_kz0g69a", {
+  emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
     to_email: email,
     otp: otp
   })
