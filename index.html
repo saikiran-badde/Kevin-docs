@@ -2,206 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Kevin Docs - Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kevin Docs OTP Login</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      text-align: center;
       margin: 0;
       padding: 0;
-      background: linear-gradient(to right, #4facfe, #00f2fe);
-      color: white;
-    }
-    .cover {
-      padding: 50px;
-      background: rgba(0, 0, 0, 0.2);
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #89f7fe, #66a6ff);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
     }
     h1 {
-      font-size: 36px;
-      color: #ffeb3b;
+      color: #fff;
     }
-    input {
-      padding: 10px;
+    .box {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+    input, button {
       margin: 10px;
-      width: 200px;
-      border-radius: 5px;
-      border: none;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-      margin: 10px;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    img {
-      max-width: 100%;
-      height: auto;
-      margin-top: 20px;
-    }
-    #login-form, #signup-form, #access-section {
-      display: none;
-    }
-    #user-info {
-      position: absolute;
-      top: 10px;
-      right: 20px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    #dropdown {
-      display: none;
-      position: absolute;
-      top: 40px;
-      right: 20px;
-      background: white;
-      color: black;
-      border-radius: 5px;
       padding: 10px;
-      z-index: 100;
-      text-align: left;
-    }
-    #dropdown p {
-      margin: 0;
-      font-weight: bold;
-    }
-    #dropdown button {
-      background: #dc3545;
-      margin-top: 5px;
+      width: 80%;
     }
   </style>
 </head>
 <body>
-  <div id="user-info" onclick="toggleDropdown()"></div>
-  <div id="dropdown">
-    <p id="dropdown-username"></p>
-    <button onclick="logout()">Logout</button>
+  <h1>Kevin Docs - OTP Login</h1>
+  <div class="box">
+    <input type="email" id="email" placeholder="Enter your email" required />
+    <button onclick="sendOTP()">Send OTP</button>
+    <div id="otp-section" style="display:none;">
+      <input type="text" id="otp" placeholder="Enter OTP" required />
+      <button onclick="verifyOTP()">Verify OTP</button>
+    </div>
+    <p id="status"></p>
   </div>
 
-  <div class="cover">
-    <h1>Kevin Docs</h1>
-    <p id="welcome-message"></p>
-  </div>
-
-  <!-- Login Form -->
-  <div id="login-form">
-    <input type="email" id="email" placeholder="Enter Email" /><br>
-    <input type="password" id="password" placeholder="Enter Password" /><br>
-    <button onclick="login()">Login</button>
-    <button onclick="showSignup()">Sign Up</button>
-    <p id="login-message"></p>
-  </div>
-
-  <!-- Signup Form -->
-  <div id="signup-form">
-    <input type="text" id="username" placeholder="Enter Name" /><br>
-    <input type="email" id="signup-email" placeholder="Enter Email" /><br>
-    <input type="password" id="signup-password" placeholder="Enter Password" /><br>
-    <button onclick="register()">Sign Up</button>
-    <button onclick="showLogin()">Back to Login</button>
-    <p id="signup-message"></p>
-  </div>
-
-  <!-- Get Access Section (Hidden Until Login) -->
-  <div id="access-section">
-    <button onclick="showAccess()">Get Access</button>
-    <img id="qr-code" src="1000050054.png" alt="Scan and Pay" style="display: none;"/>
-    <p id="payment-text" style="display: none;">Scan and pay 100 rupees to get access</p>
-  </div>
-
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
-  <script>
-    // Firebase Configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyCZtRoanYqhEHapzyylSdsciYJc_iG1FyI",
-      authDomain: "kevin-docs.firebaseapp.com",
-      projectId: "kevin-docs",
-      storageBucket: "kevin-docs.appspot.com",
-      messagingSenderId: "636511201809",
-      appId: "1:636511201809:web:5f6cd7fa35247149d6dfb0"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-
-    document.getElementById('login-form').style.display = 'block';
-
-    function login() {
-      let email = document.getElementById('email').value;
-      let password = document.getElementById('password').value;
-      auth.signInWithEmailAndPassword(email, password)
-        .then(userCredential => {
-          const user = userCredential.user;
-          showUser(user.email);
-        })
-        .catch(error => {
-          document.getElementById('login-message').innerText = "User not found. Please sign up.";
-        });
-    }
-
-    function showSignup() {
-      document.getElementById('login-form').style.display = 'none';
-      document.getElementById('signup-form').style.display = 'block';
-    }
-
-    function showLogin() {
-      document.getElementById('signup-form').style.display = 'none';
-      document.getElementById('login-form').style.display = 'block';
-    }
-
-    function register() {
-      let username = document.getElementById('username').value;
-      let email = document.getElementById('signup-email').value;
-      let password = document.getElementById('signup-password').value;
-      auth.createUserWithEmailAndPassword(email, password)
-        .then(() => {
-          document.getElementById('signup-message').innerText = "Account Created! Please login.";
-          showLogin();
-        })
-        .catch(error => {
-          document.getElementById('signup-message').innerText = "Error: " + error.message;
-        });
-    }
-
-    function showAccess() {
-      document.getElementById('qr-code').style.display = 'block';
-      document.getElementById('payment-text').style.display = 'block';
-    }
-
-    function showUser(email) {
-      document.getElementById('user-info').innerText = email;
-      document.getElementById('dropdown-username').innerText = email;
-      document.getElementById('welcome-message').innerText = `Welcome, ${email}`;
-      document.getElementById('login-form').style.display = 'none';
-      document.getElementById('signup-form').style.display = 'none';
-      document.getElementById('access-section').style.display = 'block';
-    }
-
-    function toggleDropdown() {
-      const dropdown = document.getElementById('dropdown');
-      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-    }
-
-    function logout() {
-      auth.signOut().then(() => {
-        document.getElementById('user-info').innerText = '';
-        document.getElementById('dropdown').style.display = 'none';
-        document.getElementById('access-section').style.display = 'none';
-        document.getElementById('welcome-message').innerText = '';
-        document.getElementById('login-form').style.display = 'block';
-      });
-    }
-  </script>
+  <script type="module" src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 </body>
 </html>
