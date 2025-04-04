@@ -69,8 +69,8 @@
       <button class="btn btn-warning btn-custom" onclick="verifySignupOTP()">Verify OTP</button>
     </div>
     
-    <div id="post-signup-message">
-      <p class="message">Account created successfully. Login again to access.</p>
+    <div id="post-signup-message" style="display: none;">
+      <p class="message" id="signup-success-message" style="display: none;">Account created successfully. Login again to access.</p>
       <button class="btn btn-primary btn-custom" onclick="toggleForms('login')">Back to Login</button>
     </div>
     
@@ -84,6 +84,7 @@
       document.getElementById("signup-form").style.display = (view === "signup") ? "block" : "none";
       document.getElementById("otp-section").style.display = "none";
       document.getElementById("post-signup-message").style.display = "none";
+      document.getElementById("signup-success-message").style.display = "none";
       document.getElementById("form-title").innerText = view === "signup" ? "Sign Up" : "Login";
       document.getElementById("status").innerText = "";
     }
@@ -99,9 +100,16 @@
     }
 
     function verifySignupOTP() {
-      document.getElementById("otp-section").style.display = "none";
-      document.getElementById("post-signup-message").style.display = "block";
-      document.getElementById("status").innerText = "";
+      // Simulate OTP verification
+      let isOtpValid = true; // Replace with actual OTP verification logic
+      if (isOtpValid) {
+        document.getElementById("otp-section").style.display = "none";
+        document.getElementById("post-signup-message").style.display = "block";
+        document.getElementById("signup-success-message").style.display = "block";
+        document.getElementById("status").innerText = "";
+      } else {
+        document.getElementById("status").innerText = "Invalid OTP. Please try again.";
+      }
     }
   </script>
 </body>
