@@ -16,158 +16,29 @@
       padding: 2rem;
       border-radius: 15px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      max-width: 400px;
+      max-width: 500px;
     }
     .hidden {
+      display: none;
+    }
+    #user-menu {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+    }
+    #dropdown {
+      position: absolute;
+      right: 0;
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      padding: 0.5rem;
       display: none;
     }
   </style>
 </head>
 <body>
-  <div class="container text-center">
-    <h2 id="form-title">Login</h2>
-    <div id="status" class="text-danger mb-3"></div>
 
-    <!-- Login Form -->
-    <div id="login-form">
-      <input type="email" id="login-email" placeholder="Email" class="form-control mb-2"/>
-      <input type="password" id="login-password" placeholder="Password" class="form-control mb-3"/>
-      <button class="btn btn-primary w-100 mb-2" onclick="handleLogin()">Login</button>
-      <button class="btn btn-outline-secondary w-100" onclick="toggleForms('signup')">Sign Up</button>
-    </div>
-
-    <!-- Signup Form -->
-    <div id="signup-form" class="hidden">
-      <input type="email" id="signup-email" placeholder="Email" class="form-control mb-2"/>
-      <input type="password" id="signup-password" placeholder="Password" class="form-control mb-2"/>
-      <input type="password" id="signup-confirm" placeholder="Confirm Password" class="form-control mb-3"/>
-      <button class="btn btn-success w-100" onclick="initiateSignup()">Send OTP</button>
-    </div>
-
-    <!-- OTP Section -->
-    <div id="otp-section" class="hidden">
-      <input type="text" id="otp" placeholder="Enter OTP" class="form-control mb-3"/>
-      <button class="btn btn-warning w-100" onclick="verifySignupOTP()">Verify OTP</button>
-    </div>
-
-    <!-- Post Signup Message -->
-    <div id="post-signup-message" class="hidden">
-      <p class="text-success">✅ Account created successfully. Please login again to access.</p>
-      <button class="btn btn-primary w-100" onclick="toggleForms('login')">Back to Login</button>
-    </div>
-  </div>
-
-  <!-- Firebase + EmailJS Scripts -->
-  <script type="module">
-    // Import EmailJS
-    import emailjs from 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
-
-    emailjs.init("asApBLVCT-CCvMpnV");
-
-    // Firebase CDN imports
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js';
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js';
-
-    // Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyCZtRoanYqhEHapzyylSdsciYJc_iG1FyI",
-      authDomain: "kevin-docs.firebaseapp.com",
-      projectId: "kevin-docs",
-      storageBucket: "kevin-docs.appspot.com",
-      messagingSenderId: "636511201809",
-      appId: "1:636511201809:web:5f6cd7fa35247149d6dfb0"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    // Globals
-    let generatedOtp = "";
-
-    // Send OTP via EmailJS
-    window.sendOtpEmail = (email, otp) => {
-      return emailjs.send("service_y2gxf7e", "template_kz0g69a", {
-        to_email: email,
-        otp: otp
-      });
-    };
-
-    // Toggle Login/Signup
-    window.toggleForms = function(view) {
-      document.getElementById("login-form").classList.add("hidden");
-      document.getElementById("signup-form").classList.add("hidden");
-      document.getElementById("otp-section").classList.add("hidden");
-      document.getElementById("post-signup-message").classList.add("hidden");
-      document.getElementById("status").innerText = "";
-      document.getElementById("form-title").innerText = view === "signup" ? "Sign Up" : "Login";
-
-      if (view === "signup") {
-        document.getElementById("signup-form").classList.remove("hidden");
-      } else {
-        document.getElementById("login-form").classList.remove("hidden");
-      }
-    };
-
-    // Login Function
-    window.handleLogin = function() {
-      const email = document.getElementById("login-email").value;
-      const password = document.getElementById("login-password").value;
-      document.getElementById("status").innerText = "Logging in...";
-      signInWithEmailAndPassword(auth, email, password)
-        .then(() => {
-          document.getElementById("status").innerText = "Login successful!";
-          // Optionally redirect or show user area
-        })
-        .catch((error) => {
-          document.getElementById("status").innerText = error.message;
-        });
-    };
-
-    // Start Signup + Send OTP
-    window.initiateSignup = function() {
-      const email = document.getElementById("signup-email").value;
-      const password = document.getElementById("signup-password").value;
-      const confirmPassword = document.getElementById("signup-confirm").value;
-
-      if (password !== confirmPassword) {
-        document.getElementById("status").innerText = "Passwords do not match.";
-        return;
-      }
-
-      generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-
-      sendOtpEmail(email, generatedOtp)
-        .then(() => {
-          document.getElementById("signup-form").classList.add("hidden");
-          document.getElementById("otp-section").classList.remove("hidden");
-          document.getElementById("status").innerText = "OTP has been sent to your email.";
-        })
-        .catch((error) => {
-          document.getElementById("status").innerText = "Failed to send OTP.";
-          console.error("OTP Error:", error);
-        });
-    };
-
-    // OTP Verification
-    window.verifySignupOTP = function() {
-      const enteredOtp = document.getElementById("otp").value;
-      const email = document.getElementById("signup-email").value;
-      const password = document.getElementById("signup-password").value;
-
-      if (enteredOtp === generatedOtp) {
-        createUserWithEmailAndPassword(auth, email, password)
-          .then(() => {
-            document.getElementById("otp-section").classList.add("hidden");
-            document.getElementById("post-signup-message").classList.remove("hidden");
-            document.getElementById("status").innerText = "";
-          })
-          .catch((error) => {
-            document.getElementById("status").innerText = error.message;
-          });
-      } else {
-        document.getElementById("status").innerText = "Invalid OTP.";
-      }
-    };
-  </script>
-</body>
-</html>
+  <div id="user-menu" class="hidden">
+    <button class="btn btn-outline-dark
